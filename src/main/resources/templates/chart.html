@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Crypto Market Chart</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>📈 Evolución de Precios (BTC y ETH)</h1>
+
+<canvas id="cryptoChart"></canvas>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Criptomoneda</th>
+        <th>Precio (USD)</th>
+        <th>Fecha/Hora</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="price : ${prices}">
+        <td th:text="${price.id}"></td>
+        <td th:text="${price.name}"></td>
+        <td th:text="${price.priceUsd}"></td>
+        <td th:text="${price.timestamp}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<script th:inline="javascript">
+    /* Agrupar datos desde Thymeleaf */
+    const allData = [[${prices}]];
+
+    // Agrupar por nombre (bitcoin, ethereum)
+    const grouped = {};
+    allData.forEach(p => {
+        const name = p.name;
+        if (!grouped[name]) grouped[name] = { labels: [], data: [] };
+        grouped[name].labels.push(p.timestamp);
+        grouped[name].data.push(p.priceUsd);
+    });
+
+    const ctx = document.getElementById('cryptoChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: grouped.bitcoin ? grouped.bitcoin.labels : [],
+            datasets: [
+                {
+                    label: 'Bitcoin',
+                    data: grouped.bitcoin ? grouped.bitcoin.data : [],
+                    borderColor: '#ffcc00',
+                    tension: 0.2,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Ethereum',
+                    data: grouped.ethereum ? grouped.ethereum.data : [],
+                    borderColor: '#00ffff',
+                    tension: 0.2,
+                    borderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { ticks: { color: '#00ffaa' } },
+                y: { ticks: { color: '#00ffaa' } }
+            },
+            plugins: {
+                legend: {
+                    labels: { color: '#00ffaa' }
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
